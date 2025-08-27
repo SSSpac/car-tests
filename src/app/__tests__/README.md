@@ -6,4 +6,4 @@ Basicaly you rended a list of cars with its model, year, price and so on (you in
 
  it also includes a navigation links bak to the home page. the most important thing is the rendering logic, the components must display the correct data. You can run the tests (all of them will fail since the components arnt included but you can use the comman: npm run test (to run all the tests from every page at the same times), or use npx jest (filename).test.tsx to run each test page seperatly)
 
-git push
+git push/
