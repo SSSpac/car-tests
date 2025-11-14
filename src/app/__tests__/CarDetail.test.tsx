@@ -1,87 +1,99 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import CarDetail from './CarDetail'; 
-import { mockCars } from '../../types/Car';
+import CarDetail from '@/components/CarDetail/CarDetail';
+import { mockCars } from '@/data/Car';
 import '@testing-library/jest-dom';
 
-describe('CarDetail Component', () => {
-  test('renders car details correctly', () => {
-    render(
-      <CarDetail 
-        car={mockCars[0]} 
-        onClose={jest.fn()} 
-        onToggleFavorite={jest.fn()}
-        isFavorite={false}
-      />
-    );
-    
-   expect(screen.getByText(/toyota/i)).toBeInTheDocument();
-  expect(screen.getByText(/camry/i)).toBeInTheDocument();
-  expect(screen.getByText(/\$7,800/)).toBeInTheDocument();
-  expect(screen.getByText(/reliable midsize sedan/i)).toBeInTheDocument();
-  
-  expect(screen.getByText(/Year: 2040/)).toBeInTheDocument();
-  mockCars[0].features.forEach(feature => {
-    expect(screen.getByText(feature)).toBeInTheDocument();
-  });
+describe('CarDetail Component - Unit Tests', () => {
+  const mockOnClose = jest.fn();
+  const mockOnToggleFavorite = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test('calls onClose when close button is clicked', () => {
-    const mockOnClose = jest.fn();
+  test('renders modal with all car information and features', () => {
+    const testCar = mockCars[0];
     render(
       <CarDetail 
-        car={mockCars[0]} 
-        onClose={mockOnClose}
-        onToggleFavorite={jest.fn()}
-        isFavorite={false}
-      />
-    );
-    
-    const closeButton = screen.getByText('Close');
-    fireEvent.click(closeButton);
-    
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  test('calls onToggleFavorite when favorite button is clicked', () => {
-    const mockOnToggleFavorite = jest.fn();
-    render(
-      <CarDetail 
-        car={mockCars[0]} 
-        onClose={jest.fn()}
+        car={testCar} 
+        onClose={mockOnClose} 
         onToggleFavorite={mockOnToggleFavorite}
         isFavorite={false}
       />
     );
     
-    const favoriteButton = screen.getByText('Add Favorite');
-    fireEvent.click(favoriteButton);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
     
-    expect(mockOnToggleFavorite).toHaveBeenCalledWith(mockCars[0].id);
+    expect(screen.getByText(`${testCar.make} ${testCar.model}`)).toBeInTheDocument();
+    expect(screen.getByText(`Year: ${testCar.year}`)).toBeInTheDocument();
+    expect(screen.getByText(testCar.description)).toBeInTheDocument();
+    
+    testCar.features.forEach(feature => {
+      expect(screen.getByText(feature)).toBeInTheDocument();
+    });
   });
 
-  test('shows remove favorite when isFavorite is true', () => {
-    render(
+  test('shows correct favorite button based on isFavorite prop', () => {
+    const { rerender } = render(
       <CarDetail 
         car={mockCars[0]} 
-        onClose={jest.fn()}
-        onToggleFavorite={jest.fn()}
-        isFavorite={true}
-      />
-    );
-    
-    expect(screen.getByText('Remove Favorite')).toBeInTheDocument();
-  });
-
-  test('shows add favorite when isFavorite is false', () => {
-    render(
-      <CarDetail 
-        car={mockCars[0]} 
-        onClose={jest.fn()}
-        onToggleFavorite={jest.fn()}
+        onClose={mockOnClose}
+        onToggleFavorite={mockOnToggleFavorite}
         isFavorite={false}
       />
     );
     
-    expect(screen.getByText('Add Favorite')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add favorite/i })).toBeInTheDocument();
+    
+    rerender(
+      <CarDetail 
+        car={mockCars[0]} 
+        onClose={mockOnClose}
+        onToggleFavorite={mockOnToggleFavorite}
+        isFavorite={true}
+      />
+    );
+    
+    expect(screen.getByRole('button', { name: /remove favorite/i })).toBeInTheDocument();
+  });
+
+  test('closes modal using both close methods', () => {
+    render(
+      <CarDetail 
+        car={mockCars[0]} 
+        onClose={mockOnClose}
+        onToggleFavorite={mockOnToggleFavorite}
+        isFavorite={false}
+      />
+    );
+    
+    const closeX = screen.getByLabelText('Close car details');
+    fireEvent.click(closeX);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    
+    const closeButtons = screen.getAllByRole('button', { name: /close/i });
+    const closeButton = closeButtons.find(btn => btn.textContent === 'Close');
+    fireEvent.click(closeButton!);
+    expect(mockOnClose).toHaveBeenCalledTimes(2);
+  });
+
+  test('calls onToggleFavorite with correct car id when favorite button clicked', () => {
+    render(
+      <CarDetail 
+        car={mockCars[0]} 
+        onClose={mockOnClose}
+        onToggleFavorite={mockOnToggleFavorite}
+        isFavorite={false}
+      />
+    );
+    
+    const favoriteButton = screen.getByRole('button', { name: /add favorite/i });
+    fireEvent.click(favoriteButton);
+    
+    expect(mockOnToggleFavorite).toHaveBeenCalledWith(mockCars[0].id);
+    expect(mockOnToggleFavorite).toHaveBeenCalledTimes(1);
   });
 });

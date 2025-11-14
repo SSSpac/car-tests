@@ -1,51 +1,54 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Page from '../page';
-import { FavoritesProvider } from '../../components/Favorites/FavoritesContext';
+import Page from '@/app/page';
+import { FavoritesProvider } from '@/components/Favorites/FavoritesContext';
+import '@testing-library/jest-dom';
 
-jest.mock('../../components/Header/Header', () => {
-  return function MockHeader() {
-    return <header data-testid="header">Header</header>;
-  };
-});
-
-jest.mock('../../components/CarList/CarList', () => {
-  return function MockCarList() {
-    return <div data-testid="car-list">Car List Component</div>;
-  };
-});
-
-jest.mock('../../components/CarDetail/CarDetail', () => {
-  return function MockCarDetail() {
-    return <div data-testid="car-detail">Car Detail Component</div>;
-  };
-});
-
-describe('Main Page', () => {
-  test('renders without crashing', () => {
+describe('Main Page - Basic Tests', () => {
+  test('renders page without crashing', () => {
     render(
-      <FavoritesProvider> 
+      <FavoritesProvider>
         <Page />
       </FavoritesProvider>
     );
+    
+    expect(screen.getByText('Available Cars')).toBeInTheDocument();
   });
 
-  test('renders search component', () => {
+  test('renders car list component with cars', () => {
     render(
-      <FavoritesProvider> 
+      <FavoritesProvider>
         <Page />
       </FavoritesProvider>
     );
+    
+    const carList = screen.getByTestId('car-list');
+    expect(carList).toBeInTheDocument();
+    
+    expect(screen.getByText('Toyota Camry')).toBeInTheDocument();
   });
 
-  test('renders car list component', () => {
+  test('renders header component', () => {
     render(
-      <FavoritesProvider> 
+      <FavoritesProvider>
         <Page />
       </FavoritesProvider>
     );
+    
+    const header = screen.getByRole('banner');
+    expect(header).toBeInTheDocument();
   });
-});
 
-test('simple math test', () => {
-  expect(1 + 1).toBe(2);
+  test('initially shows all cars as not favorited', () => {
+    render(
+      <FavoritesProvider>
+        <Page />
+      </FavoritesProvider>
+    );
+    
+    const addButtons = screen.getAllByText('Add to Favorites');
+    expect(addButtons.length).toBeGreaterThan(0);
+    
+    expect(screen.queryByText('Remove from Favorites')).not.toBeInTheDocument();
+  });
 });

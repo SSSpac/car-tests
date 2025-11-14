@@ -1,5 +1,6 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Header from './Header';
+import Header from '@/components/Header/Header';
 import '@testing-library/jest-dom';
 
 describe('Header Component', () => {
